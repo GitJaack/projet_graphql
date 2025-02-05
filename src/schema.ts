@@ -3,8 +3,7 @@ import gql from "graphql-tag";
 export const typeDefs = gql`
     type User {
         id: ID!
-        name: String!
-        email: String!
+        username: String!
         posts: [Post!]!
         comments: [Comment!]!
         likes: [Like!]!
@@ -32,6 +31,20 @@ export const typeDefs = gql`
         post: Post!
     }
 
+    type CreateUserResponse {
+        code: Int!
+        success: Boolean!
+        message: String!
+        user: User
+    }
+
+    type SignInUserResponse {
+        code: Int!
+        success: Boolean!
+        message: String!
+        token: String
+    }
+
     type Query {
         users: [User!]!
         user(id: ID!): User
@@ -40,7 +53,8 @@ export const typeDefs = gql`
     }
 
     type Mutation {
-        signUp(name: String!, email: String!): User!
+        createUser(username: String!, password: String!): CreateUserResponse
+        signIn(username: String!, password: String!): SignInUserResponse
         createPost(title: String!, content: String!): Post!
         addComment(postId: ID!, content: String!): Comment!
         likePost(postId: ID!): Like!

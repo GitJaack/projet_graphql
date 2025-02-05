@@ -3,6 +3,9 @@ const config = {
     generates: {
         "./src/types.ts": {
             plugins: ["typescript", "typescript-resolvers"],
+            config: {
+                contextType: "./context#DataSourceContext",
+            },
         },
     },
 };
