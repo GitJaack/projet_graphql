@@ -7,27 +7,48 @@ export const signIn: MutationResolvers["signIn"] = async (
     {dataSources}
 ) => {
     try {
-        const user = await dataSources.db.user.findFirstOrThrow({
+        const user = await dataSources.db.user.findUnique({
             where: {username},
+            select: {
+                id: true,
+                username: true,
+                password: true,
+            },
         });
-        const isValidPassword = comparePasswords(password, user.password);
+
+        if (!user) {
+            return {
+                code: 401,
+                message: "Utilisateur non trouvé",
+                success: false,
+                token: null,
+            };
+        }
+
+        const isValidPassword = await comparePasswords(password, user.password);
 
         if (!isValidPassword) {
-            throw new Error("Invalid password");
+            return {
+                code: 401,
+                message: "Mot de passe invalide",
+                success: false,
+                token: null,
+            };
         }
 
         const token = createJWT(user);
 
         return {
             code: 200,
-            message: "User is signed in",
+            message: "Utilisateur connecté avec succès",
             success: true,
             token,
         };
-    } catch {
+    } catch (error) {
+        console.error("Erreur lors de la connexion:", error);
         return {
             code: 401,
-            message: "bah non",
+            message: "Nom d'utilisateur ou mot de passe incorrect",
             success: false,
             token: null,
         };

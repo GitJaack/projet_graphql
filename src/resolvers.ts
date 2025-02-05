@@ -3,6 +3,7 @@ import {hashPassword} from "./auth.js";
 
 export const resolvers = {
     Query: {},
+
     Mutation: {
         createUser: async (_, {username, password}, context) => {
             try {
@@ -15,17 +16,29 @@ export const resolvers = {
 
                 return {
                     code: 201,
-                    message: `User ${username} has been created`,
+                    message: "Utilisateur créé avec succès",
                     success: true,
                     user: {
                         id: createdUser.id,
                         username: createdUser.username,
                     },
                 };
-            } catch {
+            } catch (error) {
+                // Vérifier si l'erreur vient d'une contrainte d'unicité (P2002)
+                if (error.code === "P2002") {
+                    return {
+                        code: 409,
+                        message:
+                            "Nom d'utilisateur déjà pris, choisissez-en un autre.",
+                        success: false,
+                        user: null,
+                    };
+                }
+
                 return {
                     code: 400,
-                    message: "Something bad happened",
+                    message:
+                        "Une erreur s'est produite lors de la création de l'utilisateur",
                     success: false,
                     user: null,
                 };

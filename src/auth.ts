@@ -1,6 +1,6 @@
 import {User} from "@prisma/client";
 import jwt from "jsonwebtoken";
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export const createJWT = (user: User) => {
     const token = jwt.sign(
@@ -20,7 +20,7 @@ export const getUser = (token: string): AuthenticatedUser | null => {
     try {
         const payload = jwt.verify(
             token,
-            process.env.JWT_SECRET as string
+            process.env.JWT_SECRET
         ) as AuthenticatedUser;
         return payload;
     } catch {
@@ -28,13 +28,13 @@ export const getUser = (token: string): AuthenticatedUser | null => {
     }
 };
 
-export const comparePasswords = (
+export const comparePasswords = async (
     password: string,
     hash: string
 ): Promise<boolean> => {
     return bcrypt.compare(password, hash);
 };
 
-export const hashPassword = (password: string): Promise<string> => {
-    return bcrypt.hash(password, 5);
+export const hashPassword = async (password: string): Promise<string> => {
+    return bcrypt.hash(password, 10);
 };
