@@ -70,6 +70,7 @@ export const typeDefs = gql`
         user(id: ID!): User
         posts: [Post!]!
         post(id: ID!): Post
+        getComments(postId: String!): [Comment]!
     }
 
     type Mutation {
@@ -79,6 +80,7 @@ export const typeDefs = gql`
         updatePost(id: ID!, title: String!, content: String!): PostResponse!
         deletePost(id: ID!): DeleteResponse!
         addComment(postId: ID!, content: String!): CommentResponse!
+        deleteComment(commentId: String!): CommentResponse
         likePost(postId: ID!): Like!
     }
 `;

@@ -22,6 +22,25 @@ export const resolvers = {
 
             return post;
         },
+
+        getComments: async (_, {postId}, context) => {
+            const post = await context.dataSources.db.post.findUnique({
+                where: {id: postId},
+            });
+
+            if (!post) {
+                throw new GraphQLError("Article non trouvé");
+            }
+
+            const comments = await context.dataSources.db.comment.findMany({
+                where: {postId},
+                include: {
+                    author: true,
+                },
+            });
+
+            return comments;
+        },
     },
 
     Mutation: {
@@ -157,16 +176,27 @@ export const resolvers = {
             };
         },
 
-        addComment: async (_, {postId, content}, {prisma, user}) => {
-            if (!user) {
-                throw new Error("Authentification requise");
+        addComment: async (_, {postId, content}, context) => {
+            if (!context.user) {
+                throw new GraphQLError("Authentification requise");
             }
 
-            const comment = await prisma.comment.create({
+            const post = await context.dataSources.db.post.findUnique({
+                where: {id: postId},
+            });
+
+            if (!post) {
+                throw new GraphQLError("Article non trouvé");
+            }
+
+            const comment = await context.dataSources.db.comment.create({
                 data: {
                     content,
                     postId,
-                    authorId: user.id,
+                    authorId: context.user.id,
+                },
+                include: {
+                    author: true,
                 },
             });
 
@@ -176,6 +206,54 @@ export const resolvers = {
                 success: true,
                 comment,
             };
+        },
+
+        deleteComment: async (_, {commentId}, context) => {
+            try {
+                if (!context.user) {
+                    throw new GraphQLError("Authentification requise");
+                }
+
+                const comment = await context.dataSources.db.comment.findUnique(
+                    {
+                        where: {id: commentId},
+                        include: {
+                            author: true,
+                        },
+                    }
+                );
+
+                if (!comment) {
+                    throw new GraphQLError("Commentaire non trouvé");
+                }
+
+                if (comment.author.id !== context.user.id) {
+                    throw new GraphQLError(
+                        "Vous n'etes pas autorisé à supprimer ce commentaire"
+                    );
+                }
+
+                // Supprimer le commentaire
+                await context.dataSources.db.comment.delete({
+                    where: {id: commentId},
+                });
+
+                return {
+                    code: 201,
+                    message: "Commentaire supprimé avec succès",
+                    success: true,
+                    comment: null,
+                };
+            } catch (error) {
+                return {
+                    code: 400,
+                    message:
+                        error.message ||
+                        "Erreur lors de la suppression du commentaire",
+                    success: false,
+                    comment: null,
+                };
+            }
         },
 
         likePost: async (_, {postId}, {prisma, user}) => {
