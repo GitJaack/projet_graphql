@@ -18,11 +18,31 @@ export const typeDefs = gql`
         likes: [Like!]!
     }
 
+    type PostResponse {
+        code: Int!
+        message: String!
+        success: Boolean!
+        post: Post
+    }
+
+    type DeleteResponse {
+        code: Int!
+        message: String!
+        success: Boolean!
+    }
+
     type Comment {
         id: ID!
         content: String!
         author: User!
         post: Post!
+    }
+
+    type CommentResponse {
+        code: Int!
+        message: String!
+        success: Boolean!
+        comment: Comment
     }
 
     type Like {
@@ -55,8 +75,10 @@ export const typeDefs = gql`
     type Mutation {
         createUser(username: String!, password: String!): CreateUserResponse
         signIn(username: String!, password: String!): SignInUserResponse
-        createPost(title: String!, content: String!): Post!
-        addComment(postId: ID!, content: String!): Comment!
+        createPost(title: String!, content: String!): PostResponse!
+        updatePost(id: ID!, title: String!, content: String!): PostResponse!
+        deletePost(id: ID!): DeleteResponse!
+        addComment(postId: ID!, content: String!): CommentResponse!
         likePost(postId: ID!): Like!
     }
 `;

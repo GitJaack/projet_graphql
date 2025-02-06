@@ -2,13 +2,16 @@ import {User} from "@prisma/client";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
+const TOKEN_EXPIRATION = "1d";
+
 export const createJWT = (user: User) => {
     const token = jwt.sign(
         {
             id: user.id,
             username: user.username,
         },
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
+        {expiresIn: TOKEN_EXPIRATION}
     );
 
     return token;

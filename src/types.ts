@@ -33,6 +33,13 @@ export type CreateUserResponse = {
   user?: Maybe<User>;
 };
 
+export type DeleteResponse = {
+  __typename?: 'DeleteResponse';
+  code: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
 export type Like = {
   __typename?: 'Like';
   id: Scalars['ID']['output'];
@@ -45,8 +52,10 @@ export type Mutation = {
   addComment: Comment;
   createPost: Post;
   createUser?: Maybe<CreateUserResponse>;
+  deletePost: DeleteResponse;
   likePost: Like;
   signIn?: Maybe<SignInUserResponse>;
+  updatePost: PostResponse;
 };
 
 
@@ -68,6 +77,11 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationDeletePostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationLikePostArgs = {
   postId: Scalars['ID']['input'];
 };
@@ -78,6 +92,13 @@ export type MutationSignInArgs = {
   username: Scalars['String']['input'];
 };
 
+
+export type MutationUpdatePostArgs = {
+  content: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
+  title: Scalars['String']['input'];
+};
+
 export type Post = {
   __typename?: 'Post';
   author: User;
@@ -86,6 +107,14 @@ export type Post = {
   id: Scalars['ID']['output'];
   likes: Array<Like>;
   title: Scalars['String']['output'];
+};
+
+export type PostResponse = {
+  __typename?: 'PostResponse';
+  code: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  post?: Maybe<Post>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type Query = {
@@ -197,11 +226,13 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Comment: ResolverTypeWrapper<Comment>;
   CreateUserResponse: ResolverTypeWrapper<CreateUserResponse>;
+  DeleteResponse: ResolverTypeWrapper<DeleteResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Like: ResolverTypeWrapper<Like>;
   Mutation: ResolverTypeWrapper<{}>;
   Post: ResolverTypeWrapper<Post>;
+  PostResponse: ResolverTypeWrapper<PostResponse>;
   Query: ResolverTypeWrapper<{}>;
   SignInUserResponse: ResolverTypeWrapper<SignInUserResponse>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -213,11 +244,13 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Comment: Comment;
   CreateUserResponse: CreateUserResponse;
+  DeleteResponse: DeleteResponse;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Like: Like;
   Mutation: {};
   Post: Post;
+  PostResponse: PostResponse;
   Query: {};
   SignInUserResponse: SignInUserResponse;
   String: Scalars['String']['output'];
@@ -240,6 +273,13 @@ export type CreateUserResponseResolvers<ContextType = DataSourceContext, ParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type DeleteResponseResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['DeleteResponse'] = ResolversParentTypes['DeleteResponse']> = {
+  code?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type LikeResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['Like'] = ResolversParentTypes['Like']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
@@ -251,8 +291,10 @@ export type MutationResolvers<ContextType = DataSourceContext, ParentType extend
   addComment?: Resolver<ResolversTypes['Comment'], ParentType, ContextType, RequireFields<MutationAddCommentArgs, 'content' | 'postId'>>;
   createPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationCreatePostArgs, 'content' | 'title'>>;
   createUser?: Resolver<Maybe<ResolversTypes['CreateUserResponse']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'password' | 'username'>>;
+  deletePost?: Resolver<ResolversTypes['DeleteResponse'], ParentType, ContextType, RequireFields<MutationDeletePostArgs, 'id'>>;
   likePost?: Resolver<ResolversTypes['Like'], ParentType, ContextType, RequireFields<MutationLikePostArgs, 'postId'>>;
   signIn?: Resolver<Maybe<ResolversTypes['SignInUserResponse']>, ParentType, ContextType, RequireFields<MutationSignInArgs, 'password' | 'username'>>;
+  updatePost?: Resolver<ResolversTypes['PostResponse'], ParentType, ContextType, RequireFields<MutationUpdatePostArgs, 'content' | 'id' | 'title'>>;
 };
 
 export type PostResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = {
@@ -262,6 +304,14 @@ export type PostResolvers<ContextType = DataSourceContext, ParentType extends Re
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   likes?: Resolver<Array<ResolversTypes['Like']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PostResponseResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['PostResponse'] = ResolversParentTypes['PostResponse']> = {
+  code?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -292,9 +342,11 @@ export type UserResolvers<ContextType = DataSourceContext, ParentType extends Re
 export type Resolvers<ContextType = DataSourceContext> = {
   Comment?: CommentResolvers<ContextType>;
   CreateUserResponse?: CreateUserResponseResolvers<ContextType>;
+  DeleteResponse?: DeleteResponseResolvers<ContextType>;
   Like?: LikeResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
+  PostResponse?: PostResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SignInUserResponse?: SignInUserResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
