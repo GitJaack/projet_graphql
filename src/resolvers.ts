@@ -41,22 +41,6 @@ export const resolvers = {
 
             return comments;
         },
-
-        getLikesPost: async (_, {postId}, context) => {
-            const post = await context.dataSources.db.post.findUnique({
-                where: {id: postId},
-            });
-
-            if (!post) {
-                throw new GraphQLError("Article non trouvé");
-            }
-
-            const likes = await context.dataSources.db.like.count({
-                where: {postId},
-            });
-
-            return likes;
-        },
     },
 
     Mutation: {
@@ -272,81 +256,21 @@ export const resolvers = {
             }
         },
 
-        likePost: async (_, {postId}, context) => {
-            if (!context.user) {
+        likePost: async (_, {postId}, {prisma, user}) => {
+            if (!user) {
                 throw new Error("Authentification requise");
             }
 
-            const post = await context.dataSources.db.post.findUnique({
-                where: {id: postId},
-            });
-
-            if (!post) {
-                throw new GraphQLError("Article non trouvé");
-            }
-
-            const existingLike = await context.dataSources.db.like.findUnique({
-                where: {
-                    userId_postId: {
-                        userId: context.user.id,
-                        postId,
-                    },
-                },
-            });
-
-            if (existingLike) {
-                throw new GraphQLError("Vous avez déjà liké cet article");
-            }
-
-            await context.dataSources.db.like.create({
+            await prisma.like.create({
                 data: {
                     postId,
-                    userId: context.user.id,
+                    userId: user.id,
                 },
             });
 
             return {
                 code: 201,
-                message: "Article liké avec succès",
-                success: true,
-            };
-        },
-
-        unlikePost: async (_, {postId}, context) => {
-            if (!context.user) {
-                throw new Error("Authentification requise");
-            }
-
-            const post = await context.dataSources.db.post.findUnique({
-                where: {id: postId},
-            });
-
-            if (!post) {
-                throw new GraphQLError("Article non trouvé");
-            }
-
-            const existingLike = await context.dataSources.db.like.findUnique({
-                where: {
-                    userId_postId: {
-                        userId: context.user.id,
-                        postId,
-                    },
-                },
-            });
-
-            if (!existingLike) {
-                throw new GraphQLError("Vous n'avez pas liké cet article");
-            }
-
-            await context.dataSources.db.like.delete({
-                where: {
-                    id: existingLike.id,
-                },
-            });
-
-            return {
-                code: 201,
-                message: "Liké retiré avec succès",
+                message: "Post liké avec succès",
                 success: true,
             };
         },

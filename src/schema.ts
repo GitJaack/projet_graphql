@@ -51,11 +51,6 @@ export const typeDefs = gql`
         post: Post!
     }
 
-    type LikePostResponse {
-        success: Boolean!
-        message: String!
-    }
-
     type CreateUserResponse {
         code: Int!
         success: Boolean!
@@ -76,7 +71,6 @@ export const typeDefs = gql`
         posts: [Post!]!
         post(id: ID!): Post
         getComments(postId: String!): [Comment]!
-        getLikesPost(postId: String!): Int!
     }
 
     type Mutation {
@@ -87,7 +81,6 @@ export const typeDefs = gql`
         deletePost(id: ID!): DeleteResponse!
         addComment(postId: ID!, content: String!): CommentResponse!
         deleteComment(commentId: String!): CommentResponse
-        likePost(postId: ID!): LikePostResponse!
-        unlikePost(postId: ID!): LikePostResponse!
+        likePost(postId: ID!): Like!
     }
 `;
