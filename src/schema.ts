@@ -76,7 +76,7 @@ export const typeDefs = gql`
         user(id: ID!): User
         posts: [Post!]!
         post(id: ID!): Post
-        getComments(postId: String!): [Comment]!
+        getComments(postId: String!): [Comment!]!
         getLikesPost(postId: String!): Int!
     }
 

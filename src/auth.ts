@@ -1,10 +1,12 @@
-import {User} from "@prisma/client";
+import {User} from "./models";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 const TOKEN_EXPIRATION = "1d";
 
-export const createJWT = (user: User) => {
+export type AuthenticatedUser = Pick<User, "id" | "username">;
+
+export const createJWT = (user: Pick<User, "id" | "username">) => {
     const token = jwt.sign(
         {
             id: user.id,
@@ -17,13 +19,11 @@ export const createJWT = (user: User) => {
     return token;
 };
 
-export type AuthenticatedUser = Pick<User, "id" | "username">;
-
 export const getUser = (token: string): AuthenticatedUser | null => {
     try {
         const payload = jwt.verify(
             token,
-            process.env.JWT_SECRET
+            process.env.JWT_SECRET as string
         ) as AuthenticatedUser;
         return payload;
     } catch {

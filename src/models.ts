@@ -1,3 +1,6 @@
+import {Prisma, PrismaClient} from "@prisma/client";
+
+// Types de base qui correspondent au schéma Prisma
 export type User = {
     id: string;
     username: string;
@@ -35,18 +38,16 @@ export type Like = {
     postId: string;
 };
 
+// Types pour les includes Prisma
+export type PostInclude = Prisma.PostInclude;
+export type CommentInclude = Prisma.CommentInclude;
+export type LikeInclude = Prisma.LikeInclude;
+
+// Types de réponse
 export type BaseResponse = {
     code: number;
     message: string;
     success: boolean;
-};
-
-export type CreateUserResponse = BaseResponse & {
-    user: Pick<User, "id" | "username"> | null;
-};
-
-export type SignInUserResponse = BaseResponse & {
-    token: string | null;
 };
 
 export type PostResponse = BaseResponse & {
@@ -57,55 +58,64 @@ export type CommentResponse = BaseResponse & {
     comment: Comment | null;
 };
 
-export type LikePostResponse = BaseResponse;
+export type CreateUserResponse = BaseResponse & {
+    user: Pick<User, "id" | "username"> | null;
+};
 
-export type DeleteResponse = BaseResponse;
+export type SignInUserResponse = BaseResponse & {
+    token: string | null;
+};
+
+export type LikePostResponse = {
+    success: boolean;
+    message: string;
+};
+
+// Types pour le context
+export type DataSources = {
+    db: PrismaClient;
+};
 
 export type AuthenticatedUser = {
     id: string;
     username: string;
 };
 
-export type CreateUserInput = {
+// Types pour les arguments des resolvers
+export type CreateUserArgs = {
     username: string;
     password: string;
 };
 
-export type SignInInput = {
+export type SignInArgs = {
     username: string;
     password: string;
 };
 
-export type CreatePostInput = {
+export type CreatePostArgs = {
     title: string;
     content: string;
 };
 
-export type UpdatePostInput = CreatePostInput & {
+export type UpdatePostArgs = CreatePostArgs & {
     id: string;
 };
 
-export type CreateCommentInput = {
+export type AddCommentArgs = {
     postId: string;
     content: string;
 };
 
-export type DeleteCommentInput = {
+export type DeleteCommentArgs = {
     commentId: string;
 };
 
-export type LikePostInput = {
+export type PostIdArg = {
     postId: string;
 };
 
-export type PostQueryParams = {
+export type IdArg = {
     id: string;
 };
 
-export type CommentsQueryParams = {
-    postId: string;
-};
-
-export type UserQueryParams = {
-    id: string;
-};
+export type UserModel = Omit<User, "password">;

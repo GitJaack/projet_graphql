@@ -1,7 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql';
+import { User, Post, Comment, Like, PostResponse, CommentResponse, CreateUserResponse, SignInUserResponse, LikePostResponse, BaseResponse } from './models';
 import { DataSourceContext } from './context';
 export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
@@ -132,6 +133,7 @@ export type Post = {
   content: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   likes: Array<Like>;
+  likesCount: Scalars['Int']['output'];
   title: Scalars['String']['output'];
 };
 
@@ -145,7 +147,7 @@ export type PostResponse = {
 
 export type Query = {
   __typename?: 'Query';
-  getComments: Array<Maybe<Comment>>;
+  getComments: Array<Comment>;
   getLikesPost: Scalars['Int']['output'];
   post?: Maybe<Post>;
   posts: Array<Post>;
@@ -265,7 +267,7 @@ export type ResolversTypes = {
   Comment: ResolverTypeWrapper<Comment>;
   CommentResponse: ResolverTypeWrapper<CommentResponse>;
   CreateUserResponse: ResolverTypeWrapper<CreateUserResponse>;
-  DeleteResponse: ResolverTypeWrapper<DeleteResponse>;
+  DeleteResponse: ResolverTypeWrapper<BaseResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Like: ResolverTypeWrapper<Like>;
@@ -285,7 +287,7 @@ export type ResolversParentTypes = {
   Comment: Comment;
   CommentResponse: CommentResponse;
   CreateUserResponse: CreateUserResponse;
-  DeleteResponse: DeleteResponse;
+  DeleteResponse: BaseResponse;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Like: Like;
@@ -361,6 +363,7 @@ export type PostResolvers<ContextType = DataSourceContext, ParentType extends Re
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   likes?: Resolver<Array<ResolversTypes['Like']>, ParentType, ContextType>;
+  likesCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -374,7 +377,7 @@ export type PostResponseResolvers<ContextType = DataSourceContext, ParentType ex
 };
 
 export type QueryResolvers<ContextType = DataSourceContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  getComments?: Resolver<Array<Maybe<ResolversTypes['Comment']>>, ParentType, ContextType, RequireFields<QueryGetCommentsArgs, 'postId'>>;
+  getComments?: Resolver<Array<ResolversTypes['Comment']>, ParentType, ContextType, RequireFields<QueryGetCommentsArgs, 'postId'>>;
   getLikesPost?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryGetLikesPostArgs, 'postId'>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;

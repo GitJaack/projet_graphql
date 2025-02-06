@@ -30,6 +30,7 @@ model Post {
   authorId String
   comments Comment[]
   likes    Like[]
+  likesCount Int @default(0)
 }
 
 model Comment {

@@ -1,48 +1,98 @@
 import {signIn} from "./signIn.js";
 import {hashPassword} from "./auth.js";
 import {GraphQLError} from "graphql";
+import {DataSourceContext} from "./context";
+import {Resolvers} from "./types";
+import {Post, User, Comment, Like} from "./models.js";
 
-export const resolvers = {
+export const resolvers: Resolvers = {
     Query: {
-        posts: async (_, __, context) => {
-            return await context.dataSources.db.post.findMany({
-                include: {author: true},
-            });
+        posts: async (_, __, context: DataSourceContext) => {
+            try {
+                const posts = await context.dataSources.db.post.findMany({
+                    include: {
+                        author: {
+                            include: {
+                                posts: true,
+                                comments: true,
+                                likes: true,
+                            },
+                        },
+                        comments: {
+                            include: {
+                                author: true,
+                                post: true,
+                            },
+                        },
+                        likes: {
+                            include: {
+                                user: true,
+                                post: true,
+                            },
+                        },
+                    },
+                });
+
+                // Transformation pour correspondre au type GraphQL
+                return posts.map((post) => ({
+                    ...post,
+                    author: {
+                        ...post.author,
+                        posts: post.author.posts || [],
+                        comments: post.author.comments || [],
+                        likes: post.author.likes || [],
+                    },
+                    comments: post.comments || [],
+                    likes: post.likes || [],
+                    likesCount: post.likesCount || 0,
+                }));
+            } catch (e) {
+                console.log(e);
+                throw new GraphQLError(
+                    "Erreur lors de la récupération des posts"
+                );
+            }
         },
 
-        post: async (_, {id}, context) => {
+        post: async (_, {id}, context: DataSourceContext) => {
             const post = await context.dataSources.db.post.findUnique({
                 where: {id},
-                include: {author: true},
+                include: {
+                    author: true,
+                    comments: {
+                        include: {author: true},
+                    },
+                    likes: {
+                        include: {user: true},
+                    },
+                },
             });
 
             if (!post) {
                 throw new GraphQLError("Article non trouvé");
             }
 
-            return post;
+            return {
+                ...post,
+                comments: post.comments || [],
+                likes: post.likes || [],
+                likesCount: post.likesCount || 0,
+            };
         },
 
-        getComments: async (_, {postId}, context) => {
-            const post = await context.dataSources.db.post.findUnique({
-                where: {id: postId},
-            });
-
-            if (!post) {
-                throw new GraphQLError("Article non trouvé");
-            }
-
+        getComments: async (_, {postId}, context: DataSourceContext) => {
             const comments = await context.dataSources.db.comment.findMany({
                 where: {postId},
                 include: {
                     author: true,
+                    post: true,
                 },
             });
 
             return comments;
         },
 
-        getLikesPost: async (_, {postId}, context) => {
+        getLikesPost: async (_, {postId}, context: DataSourceContext) => {
             const post = await context.dataSources.db.post.findUnique({
                 where: {id: postId},
             });
@@ -51,16 +101,16 @@ export const resolvers = {
                 throw new GraphQLError("Article non trouvé");
             }
 
-            const likes = await context.dataSources.db.like.count({
-                where: {postId},
-            });
-
-            return likes;
+            return post.likesCount;
         },
     },
 
     Mutation: {
-        createUser: async (_, {username, password}, context) => {
+        createUser: async (
+            _,
+            {username, password},
+            context: DataSourceContext
+        ) => {
             try {
                 const existingUser =
                     await context.dataSources.db.user.findUnique({
@@ -104,17 +154,22 @@ export const resolvers = {
         },
         signIn,
 
-        createPost: async (_, {title, content}, context) => {
-            try {
-                if (!context.user) {
-                    throw new GraphQLError("Authentification requise");
-                }
+        createPost: async (_, {title, content}, context: DataSourceContext) => {
+            if (!context.user) {
+                throw new GraphQLError("Authentification requise");
+            }
 
+            try {
                 const post = await context.dataSources.db.post.create({
                     data: {
                         title,
                         content,
                         authorId: context.user.id,
+                    },
+                    include: {
+                        author: true,
+                        comments: true,
+                        likes: true,
                     },
                 });
 
@@ -122,7 +177,12 @@ export const resolvers = {
                     code: 201,
                     message: "Article créé avec succès",
                     success: true,
-                    post,
+                    post: {
+                        ...post,
+                        comments: [],
+                        likes: [],
+                        likesCount: 0,
+                    },
                 };
             } catch (error) {
                 return {
@@ -134,7 +194,11 @@ export const resolvers = {
             }
         },
 
-        updatePost: async (_, {id, title, content}, context) => {
+        updatePost: async (
+            _,
+            {id, title, content},
+            context: DataSourceContext
+        ) => {
             if (!context.user) {
                 throw new GraphQLError("Authentification requise");
             }
@@ -154,6 +218,11 @@ export const resolvers = {
             const updatedPost = await context.dataSources.db.post.update({
                 where: {id},
                 data: {title, content},
+                include: {
+                    author: true,
+                    comments: true,
+                    likes: true,
+                },
             });
 
             return {
@@ -164,7 +233,7 @@ export const resolvers = {
             };
         },
 
-        deletePost: async (_, {id}, context) => {
+        deletePost: async (_, {id}, context: DataSourceContext) => {
             if (!context.user) {
                 throw new GraphQLError("Authentification requise");
             }
@@ -192,7 +261,11 @@ export const resolvers = {
             };
         },
 
-        addComment: async (_, {postId, content}, context) => {
+        addComment: async (
+            _,
+            {postId, content},
+            context: DataSourceContext
+        ) => {
             if (!context.user) {
                 throw new GraphQLError("Authentification requise");
             }
@@ -213,6 +286,7 @@ export const resolvers = {
                 },
                 include: {
                     author: true,
+                    post: true,
                 },
             });
 
@@ -224,57 +298,43 @@ export const resolvers = {
             };
         },
 
-        deleteComment: async (_, {commentId}, context) => {
-            try {
-                if (!context.user) {
-                    throw new GraphQLError("Authentification requise");
-                }
-
-                const comment = await context.dataSources.db.comment.findUnique(
-                    {
-                        where: {id: commentId},
-                        include: {
-                            author: true,
-                        },
-                    }
-                );
-
-                if (!comment) {
-                    throw new GraphQLError("Commentaire non trouvé");
-                }
-
-                if (comment.author.id !== context.user.id) {
-                    throw new GraphQLError(
-                        "Vous n'etes pas autorisé à supprimer ce commentaire"
-                    );
-                }
-
-                // Supprimer le commentaire
-                await context.dataSources.db.comment.delete({
-                    where: {id: commentId},
-                });
-
-                return {
-                    code: 201,
-                    message: "Commentaire supprimé avec succès",
-                    success: true,
-                    comment: null,
-                };
-            } catch (error) {
-                return {
-                    code: 400,
-                    message:
-                        error.message ||
-                        "Erreur lors de la suppression du commentaire",
-                    success: false,
-                    comment: null,
-                };
+        deleteComment: async (_, {commentId}, context: DataSourceContext) => {
+            if (!context.user) {
+                throw new GraphQLError("Authentification requise");
             }
+
+            const comment = await context.dataSources.db.comment.findUnique({
+                where: {id: commentId},
+                include: {
+                    author: true,
+                },
+            });
+
+            if (!comment) {
+                throw new GraphQLError("Commentaire non trouvé");
+            }
+
+            if (comment.authorId !== context.user.id) {
+                throw new GraphQLError(
+                    "Vous n'êtes pas autorisé à supprimer ce commentaire"
+                );
+            }
+
+            await context.dataSources.db.comment.delete({
+                where: {id: commentId},
+            });
+
+            return {
+                code: 201,
+                message: "Commentaire supprimé avec succès",
+                success: true,
+                comment: null,
+            };
         },
 
-        likePost: async (_, {postId}, context) => {
+        likePost: async (_, {postId}, context: DataSourceContext) => {
             if (!context.user) {
-                throw new Error("Authentification requise");
+                throw new GraphQLError("Authentification requise");
             }
 
             const post = await context.dataSources.db.post.findUnique({
@@ -305,16 +365,20 @@ export const resolvers = {
                 },
             });
 
+            await context.dataSources.db.post.update({
+                where: {id: postId},
+                data: {likesCount: {increment: 1}},
+            });
+
             return {
-                code: 201,
-                message: "Post liké avec succès",
                 success: true,
+                message: "Post liké avec succès",
             };
         },
 
-        unlikePost: async (_, {postId}, context) => {
+        unlikePost: async (_, {postId}, context: DataSourceContext) => {
             if (!context.user) {
-                throw new Error("Authentification requise");
+                throw new GraphQLError("Authentification requise");
             }
 
             const post = await context.dataSources.db.post.findUnique({
@@ -343,6 +407,12 @@ export const resolvers = {
                     id: existingLike.id,
                 },
             });
+
+            await context.dataSources.db.post.update({
+                where: {id: postId},
+                data: {likesCount: {decrement: 1}},
+            });
+
             return {
                 success: true,
                 message: "Like retiré avec succès",
@@ -351,27 +421,68 @@ export const resolvers = {
     },
 
     Post: {
-        comments: async (parent, _, context) => {
-            return await context.dataSources.db.comment.findMany({
+        comments: async (parent: Post, _, context: DataSourceContext) => {
+            const comments = await context.dataSources.db.comment.findMany({
                 where: {postId: parent.id},
-                include: {author: true},
+                include: {
+                    author: true,
+                    post: true,
+                },
             });
+            return comments;
         },
-        author: async (parent, _, context) => {
-            return await context.dataSources.db.user.findUnique({
+        author: async (parent: Post, _, context: DataSourceContext) => {
+            const author = await context.dataSources.db.user.findUnique({
                 where: {id: parent.authorId},
             });
+            return author!;
         },
-        likes: async (parent, _, context) => {
-            return await context.dataSources.db.like.findMany({
+        likes: async (parent: Post, _, context: DataSourceContext) => {
+            const likes = await context.dataSources.db.like.findMany({
                 where: {postId: parent.id},
-                include: {user: true},
+                include: {
+                    user: true,
+                    post: true,
+                },
             });
+            return likes;
         },
-        likesCount: async (parent, _, context) => {
-            return await context.dataSources.db.like.count({
-                where: {postId: parent.id},
+        likesCount: async (parent: Post, _, context: DataSourceContext) => {
+            return parent.likesCount;
+        },
+    },
+
+    User: {
+        posts: async (parent: User, _, context: DataSourceContext) => {
+            const posts = await context.dataSources.db.post.findMany({
+                where: {authorId: parent.id},
+                include: {
+                    author: true,
+                    comments: true,
+                    likes: true,
+                },
             });
+            return posts;
+        },
+        comments: async (parent: User, _, context: DataSourceContext) => {
+            const comments = await context.dataSources.db.comment.findMany({
+                where: {authorId: parent.id},
+                include: {
+                    author: true,
+                    post: true,
+                },
+            });
+            return comments;
+        },
+        likes: async (parent: User, _, context: DataSourceContext) => {
+            const likes = await context.dataSources.db.like.findMany({
+                where: {userId: parent.id},
+                include: {
+                    user: true,
+                    post: true,
+                },
+            });
+            return likes;
         },
     },
 };
