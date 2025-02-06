@@ -3,7 +3,6 @@ import {hashPassword} from "./auth.js";
 import {GraphQLError} from "graphql";
 import {DataSourceContext} from "./context";
 import {Resolvers} from "./types";
-import {Post, User, Comment, Like} from "./models.js";
 
 export const resolvers: Resolvers = {
     Query: {
@@ -32,20 +31,7 @@ export const resolvers: Resolvers = {
                         },
                     },
                 });
-
-                // Transformation pour correspondre au type GraphQL
-                return posts.map((post) => ({
-                    ...post,
-                    author: {
-                        ...post.author,
-                        posts: post.author.posts || [],
-                        comments: post.author.comments || [],
-                        likes: post.author.likes || [],
-                    },
-                    comments: post.comments || [],
-                    likes: post.likes || [],
-                    likesCount: post.likesCount || 0,
-                }));
+                return posts;
             } catch (e) {
                 console.log(e);
                 throw new GraphQLError(
@@ -417,72 +403,6 @@ export const resolvers: Resolvers = {
                 success: true,
                 message: "Like retiré avec succès",
             };
-        },
-    },
-
-    Post: {
-        comments: async (parent: Post, _, context: DataSourceContext) => {
-            const comments = await context.dataSources.db.comment.findMany({
-                where: {postId: parent.id},
-                include: {
-                    author: true,
-                    post: true,
-                },
-            });
-            return comments;
-        },
-        author: async (parent: Post, _, context: DataSourceContext) => {
-            const author = await context.dataSources.db.user.findUnique({
-                where: {id: parent.authorId},
-            });
-            return author!;
-        },
-        likes: async (parent: Post, _, context: DataSourceContext) => {
-            const likes = await context.dataSources.db.like.findMany({
-                where: {postId: parent.id},
-                include: {
-                    user: true,
-                    post: true,
-                },
-            });
-            return likes;
-        },
-        likesCount: async (parent: Post, _, context: DataSourceContext) => {
-            return parent.likesCount;
-        },
-    },
-
-    User: {
-        posts: async (parent: User, _, context: DataSourceContext) => {
-            const posts = await context.dataSources.db.post.findMany({
-                where: {authorId: parent.id},
-                include: {
-                    author: true,
-                    comments: true,
-                    likes: true,
-                },
-            });
-            return posts;
-        },
-        comments: async (parent: User, _, context: DataSourceContext) => {
-            const comments = await context.dataSources.db.comment.findMany({
-                where: {authorId: parent.id},
-                include: {
-                    author: true,
-                    post: true,
-                },
-            });
-            return comments;
-        },
-        likes: async (parent: User, _, context: DataSourceContext) => {
-            const likes = await context.dataSources.db.like.findMany({
-                where: {userId: parent.id},
-                include: {
-                    user: true,
-                    post: true,
-                },
-            });
-            return likes;
         },
     },
 };

@@ -1,16 +1,9 @@
-import {Prisma, PrismaClient} from "@prisma/client";
+import {Comment, Like, Post, Prisma, PrismaClient, User} from "@prisma/client";
 
 // Types de base qui correspondent au schéma Prisma
-export type User = {
-    id: string;
-    username: string;
-    password: string;
-    posts: Post[];
-    comments: Comment[];
-    likes: Like[];
-};
+export type UserModel = Omit<User, "password">;
 
-export type Post = {
+export type PostModel = {
     id: string;
     title: string;
     content: string;
@@ -21,7 +14,7 @@ export type Post = {
     likesCount: number;
 };
 
-export type Comment = {
+export type CommentModel = {
     id: string;
     content: string;
     author: User;
@@ -30,7 +23,7 @@ export type Comment = {
     postId: string;
 };
 
-export type Like = {
+export type LikeModel = {
     id: string;
     user: User;
     userId: string;
@@ -50,23 +43,23 @@ export type BaseResponse = {
     success: boolean;
 };
 
-export type PostResponse = BaseResponse & {
+export type PostResponseModel = BaseResponse & {
     post: Post | null;
 };
 
-export type CommentResponse = BaseResponse & {
+export type CommentResponseModel = BaseResponse & {
     comment: Comment | null;
 };
 
-export type CreateUserResponse = BaseResponse & {
+export type CreateUserResponseModel = BaseResponse & {
     user: Pick<User, "id" | "username"> | null;
 };
 
-export type SignInUserResponse = BaseResponse & {
+export type SignInUserResponseModel = BaseResponse & {
     token: string | null;
 };
 
-export type LikePostResponse = {
+export type LikePostResponseModel = {
     success: boolean;
     message: string;
 };
@@ -117,5 +110,4 @@ export type PostIdArg = {
 export type IdArg = {
     id: string;
 };
-
-export type UserModel = Omit<User, "password">;
+export {User, Post, Comment};

@@ -19,8 +19,6 @@ const config: CodegenConfig = {
                     LikePostResponse: "./models#LikePostResponse",
                     DeleteResponse: "./models#BaseResponse",
                 },
-                enumsAsTypes: true,
-                inputMaybeValue: "T | null | undefined",
             },
         },
     },

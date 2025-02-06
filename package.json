@@ -8,13 +8,15 @@
         "compile": "tsc",
         "start": "npm run compile && node ./dist/index.js",
         "dev": "node --import ./scripts/register.js --watch src/index.ts",
-        "generate": "graphql-codegen"
+        "generate": "graphql-codegen",
+        "prisma": "prisma"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "type": "module",
     "dependencies": {
+        "@apollo/datasource-rest": "^6.4.1",
         "@apollo/server": "^4.11.3",
         "@prisma/client": "^6.3.1",
         "apollo-server": "^3.13.0",
@@ -34,6 +36,7 @@
         "@types/graphql": "^14.2.3",
         "@types/jsonwebtoken": "^9.0.8",
         "@types/node": "^22.13.1",
+        "prisma": "^6.3.1",
         "ts-node": "^10.9.2",
         "typescript": "^5.7.3"
     }
