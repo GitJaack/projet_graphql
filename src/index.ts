@@ -16,7 +16,6 @@ const server = new ApolloServer({
 const {url} = await startStandaloneServer(server, {
     listen: {port: 4000},
     context: async ({req}) => {
-        const {cache} = server;
         const authorization = req.headers.authorization?.split("Bearer ")?.[1];
         const user = authorization ? getUser(authorization) : null;
         return {

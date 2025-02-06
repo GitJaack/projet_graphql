@@ -349,4 +349,29 @@ export const resolvers = {
             };
         },
     },
+
+    Post: {
+        comments: async (parent, _, context) => {
+            return await context.dataSources.db.comment.findMany({
+                where: {postId: parent.id},
+                include: {author: true},
+            });
+        },
+        author: async (parent, _, context) => {
+            return await context.dataSources.db.user.findUnique({
+                where: {id: parent.authorId},
+            });
+        },
+        likes: async (parent, _, context) => {
+            return await context.dataSources.db.like.findMany({
+                where: {postId: parent.id},
+                include: {user: true},
+            });
+        },
+        likesCount: async (parent, _, context) => {
+            return await context.dataSources.db.like.count({
+                where: {postId: parent.id},
+            });
+        },
+    },
 };

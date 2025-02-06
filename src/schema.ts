@@ -16,6 +16,7 @@ export const typeDefs = gql`
         author: User!
         comments: [Comment!]!
         likes: [Like!]!
+        likesCount: Int!
     }
 
     type PostResponse {
