@@ -12,7 +12,7 @@ npm install
 - Configurer la base de données
 Assurez-vous d'avoir PostgreSQL ou une autre base supportée par Prisma.
 Configurez votre fichier .env :
-DATABASE_URL="postgresql://user:password@localhost:5432/nom_de_la_base"
+DATABASE_URL="postgresql://user:password@localhost:542/nom_de_la_base"
 JWT_SECRET="votre_secret_jwt"
 
 - Générer le schéma Prisma
