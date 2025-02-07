@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./schema.js";
@@ -11,7 +13,6 @@ const server = new ApolloServer({
 const { url } = await startStandaloneServer(server, {
     listen: { port: 4000 },
     context: async ({ req }) => {
-        const { cache } = server;
         const authorization = req.headers.authorization?.split("Bearer ")?.[1];
         const user = authorization ? getUser(authorization) : null;
         return {

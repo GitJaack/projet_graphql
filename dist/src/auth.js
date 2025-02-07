@@ -1,10 +1,11 @@
 import jwt from "jsonwebtoken";
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+const TOKEN_EXPIRATION = "1d";
 export const createJWT = (user) => {
     const token = jwt.sign({
         id: user.id,
         username: user.username,
-    }, process.env.JWT_SECRET);
+    }, process.env.JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
     return token;
 };
 export const getUser = (token) => {
@@ -16,9 +17,9 @@ export const getUser = (token) => {
         return null;
     }
 };
-export const comparePasswords = (password, hash) => {
+export const comparePasswords = async (password, hash) => {
     return bcrypt.compare(password, hash);
 };
-export const hashPassword = (password) => {
-    return bcrypt.hash(password, 5);
+export const hashPassword = async (password) => {
+    return bcrypt.hash(password, 10);
 };
